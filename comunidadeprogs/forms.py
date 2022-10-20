@@ -1,4 +1,5 @@
 #instalar o falsk_wtf -> pip install flask-wtf
+from platform import python_branch
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
@@ -38,6 +39,23 @@ class FormEditarPerfil(FlaskForm):
     username = StringField('Nome de Usuário', validators=[DataRequired()]) #DataRequired -> obrigatório
     email = StringField('E-mail', validators=[DataRequired(), Email()])
     foto_perfil = FileField('Atualizar Foto de Perfil', validators=[FileAllowed(['jpg', 'png', 'gif', 'svg'])])
+
+    linguagem_python = BooleanField('Python')
+    linguagem_cplus = BooleanField('c++')
+    linguagem_csharp = BooleanField('c#')
+    linguagem_java = BooleanField('Java')
+    linguagem_sql = BooleanField('SQL')
+    linguagem_javascript = BooleanField('JavaScript')
+    linguagem_r = BooleanField('R')
+    linguagem_htmlcss = BooleanField('HTML/CSS')
+    linguagem_typescript = BooleanField('TypeScript')
+    linguagem_php = BooleanField('PHP')
+    linguagem_shell = BooleanField('Shell')
+    linguagem_ruby = BooleanField('Ruby')
+    linguagem_assembly = BooleanField('Assembly')
+    linguagem_swift = BooleanField('Swift')
+    linguagem_go = BooleanField('Go')
+
     botao_submit_editarperfil = SubmitField('Confirmar Edição')
 
     def validate_email(self, email):

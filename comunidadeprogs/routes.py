@@ -96,6 +96,27 @@ def salvar_imagem(imagem):
 
     return nome_arquivo
 
+def atualizar_linguagens(form):
+    lista_linguagens = []
+    for campo in form:
+        if 'linguagem_' in campo.name:
+            if campo.data:
+                #adicionar o texto do campo.label (python...) na lista de linguagens
+                lista_linguagens.append(campo.label.text)
+    return ';'.join(lista_linguagens)
+
+'''
+Cola para verificar no banco de dados pelo Python console:
+----------------------------------------
+from comunidadeprogs import database
+from comunidadeprogs.models import Usuario
+
+usuario = Usuario.query.filter_by(email='leoTeste@gmail.com').first()
+
+usuario.linguagens
+
+'''
+
 @app.route('/perfil/editar', methods=['GET', 'POST'])
 @login_required
 def editar_perfil():
@@ -107,6 +128,7 @@ def editar_perfil():
             #mudar o campo foto_perfil do usuario para o novo nome da imagem
             nome_imagem = salvar_imagem(form.foto_perfil.data)
             current_user.foto_perfil = nome_imagem
+        current_user.linguagens = atualizar_linguagens(form)
         database.session.commit()
         flash(f'Perfil atualizado com Sucesso', "alert-success")
         return redirect(url_for('perfil'))
