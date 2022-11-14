@@ -35,3 +35,24 @@
 .number3{
   font-weight:500;
 }
+
+#img_perfil {
+  object-fit: cover;
+  height: 200px;
+  border-radius: 90px;
+}
+
+.meupost {
+  background: #f2f5f8;
+  min-width: 800px;
+}
+
+.link_titulo:hover {
+  opacity: 0.8;
+}
+
+.seta {
+  height: 30px;
+  width: 60px;
+  background-color: #000;
+}

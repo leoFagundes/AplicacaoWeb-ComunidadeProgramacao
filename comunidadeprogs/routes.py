@@ -1,18 +1,17 @@
-from flask import render_template, url_for, request, flash, redirect
+from flask import render_template, url_for, request, flash, redirect, abort
 from comunidadeprogs import app, database, bcrypt
-from comunidadeprogs.forms import FormCriarConta, FormLogin, FormEditarPerfil
-from comunidadeprogs.models import Usuario
+from comunidadeprogs.forms import FormCriarConta, FormLogin, FormEditarPerfil, FormCriarPost
+from comunidadeprogs.models import Usuario, Post
 from flask_login import login_user, logout_user, current_user, login_required
 import secrets
 import os
 from PIL import Image #pip install Pillow
 
-lista_usuarios = ['Leo', 'João', 'Alon', 'Alessandra', 'Amanda']
-
-
 @app.route('/')
 def home():
-    return render_template('home.html')
+    posts = Post.query.order_by(Post.id).all()
+    posts = posts[::-1]
+    return render_template('home.html', posts=posts)
 
 
 @app.route('/contato')
@@ -23,6 +22,7 @@ def contato():
 @app.route('/usuarios')
 @login_required
 def usuarios():
+    lista_usuarios = Usuario.query.all()
     return render_template('usuarios.html', lista_usuarios=lista_usuarios)
 
 # methods=['GET', 'POST'] serve para liberar os métodos get e posts nessa função
@@ -73,10 +73,17 @@ def perfil():
     return render_template('perfil.html', foto_perfil=foto_perfil)
 
 
-@app.route('/post/criar')
+@app.route('/post/criar', methods=['GET', 'POST'])
 @login_required
 def criar_post():
-    return render_template('criarpost.html')
+    form = FormCriarPost()
+    if form.validate_on_submit():
+        post = Post(titulo=form.titulo.data, corpo=form.corpo.data, autor=current_user)
+        database.session.add(post)
+        database.session.commit()
+        flash('Post Criado com Sucesso', 'alert-success')
+        return redirect(url_for('home'))
+    return render_template('criarpost.html', form=form)
 
 
 def salvar_imagem(imagem):
@@ -117,10 +124,45 @@ usuario.linguagens
 
 '''
 
+def bool_editar_perfil(form, lista):
+    for item in lista:
+        if item == "Python":
+            form.linguagem_python.data = True
+        if item == "c++":
+            form.linguagem_cplus.data = True
+        if item == "c#":
+            form.linguagem_csharp.data = True
+        if item == "Java":
+            form.linguagem_java.data = True
+        if item == "SQL":
+            form.linguagem_sql.data = True
+        if item == "JavaScript":
+            form.linguagem_javascript.data = True
+        if item == "R":
+            form.linguagem_r.data = True
+        if item == "HTML/CSS":
+            form.linguagem_htmlcss.data = True
+        if item == "TypeScript":
+            form.linguagem_typescript.data = True
+        if item == "PHP":
+            form.linguagem_php.data = True
+        if item == "Shell":
+            form.linguagem_shell.data = True
+        if item == "Ruby":
+            form.linguagem_ruby.data = True
+        if item == "Assembly":
+            form.linguagem_assembly.data = True
+        if item == "Swift":
+            form.linguagem_swift.data = True
+        if item == "Go":
+            form.linguagem_go.data = True
+
+
 @app.route('/perfil/editar', methods=['GET', 'POST'])
 @login_required
 def editar_perfil():
     form = FormEditarPerfil()
+    print(current_user.linguagens)
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.email = form.email.data
@@ -135,6 +177,41 @@ def editar_perfil():
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
+
+        bool_editar_perfil(form, current_user.linguagens.split(';'))
+        
     foto_perfil = url_for('static', filename='fotos_perfil/{}'.format(current_user.foto_perfil))
     return render_template('editarperfil.html', foto_perfil=foto_perfil, form=form)
 
+
+@app.route('/post/<post_id>', methods=['GET', 'POST'])
+@login_required
+def exibir_post(post_id):
+    post = Post.query.get(post_id)
+    if current_user == post.autor:
+        form = FormCriarPost()
+        if request.method == 'GET':
+            form.titulo.data = post.titulo
+            form.corpo.data = post.corpo
+        elif form.validate_on_submit():
+            post.titulo = form.titulo.data
+            post.corpo = form.corpo.data
+            database.session.commit()
+            flash('Post Atualizado', 'alert-success')
+            return redirect(url_for("home"))
+    else:
+        form = None
+    return render_template('post.html', post=post, form=form)
+
+
+@app.route('/post/<post_id>/excluir', methods=['GET', 'POST'])
+@login_required
+def excluir_post(post_id):
+    post = Post.query.get(post_id)
+    if current_user == post.autor:
+        database.session.delete(post)
+        database.session.commit()
+        flash('Post Excluido com Sucesso', 'alert-danger')
+        return redirect(url_for('home'))
+    else:
+        abort(403)
